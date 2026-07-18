@@ -1,0 +1,96 @@
+# =============================================================================
+# Audace Hub — docker-compose para produção no Coolify
+# =============================================================================
+# Este compose sobe APENAS o app Next.js + Redis (cache/queue).
+# O Postgres é gerenciado pelo serviço Supabase separado no Coolify
+# (https://github.com/supabase/supabase/tree/master/docker) e conectado via
+# variável NEXT_PUBLIC_SUPABASE_URL.
+#
+# No Coolify: crie um recurso "Docker Compose" e cole este arquivo.
+# =============================================================================
+
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Permite pular a coleta de telemetria do Next durante build.
+        NEXT_TELEMETRY_DISABLED: '1'
+    container_name: audace-hub
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      # -------------------------------------------------------------------------
+      # Aplicação
+      # -------------------------------------------------------------------------
+      NODE_ENV: production
+      PORT: '3000'
+      HOSTNAME: '0.0.0.0'
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+
+      # -------------------------------------------------------------------------
+      # Supabase
+      # -------------------------------------------------------------------------
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+
+      # -------------------------------------------------------------------------
+      # Mercado Livre OAuth
+      # -------------------------------------------------------------------------
+      ML_APP_ID: ${ML_APP_ID}
+      ML_CLIENT_SECRET: ${ML_CLIENT_SECRET}
+      ML_REDIRECT_URI: ${ML_REDIRECT_URI}
+
+      # -------------------------------------------------------------------------
+      # Criptografia
+      # -------------------------------------------------------------------------
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+
+      # -------------------------------------------------------------------------
+      # Redis
+      # -------------------------------------------------------------------------
+      REDIS_URL: redis://redis:6379
+
+      # -------------------------------------------------------------------------
+      # Observabilidade
+      # -------------------------------------------------------------------------
+      NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - audace-net
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/api/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    container_name: audace-redis
+    restart: unless-stopped
+    # Persistência simples habilitada — Coolify monta volume automaticamente.
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory', '256mb', '--maxmemory-policy', 'allkeys-lru']
+    volumes:
+      - redis-data:/data
+    networks:
+      - audace-net
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+networks:
+  audace-net:
+    driver: bridge
+
+volumes:
+  redis-data:

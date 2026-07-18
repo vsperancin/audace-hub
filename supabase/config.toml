@@ -1,0 +1,10 @@
+# Supabase CLI config
+project_id = "audace-hub"
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[realtime]
+enabled = true
