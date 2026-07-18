@@ -89,8 +89,11 @@ export function ConnectionCard({ connection }: ConnectionCardProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="text-xs text-muted-foreground">
-          Token expira em <span className="font-medium text-foreground">
-            {formatDateTime(connection.tokenExpiresAt)}
+          Token expira em{' '}
+          <span className="font-medium text-foreground">
+            {connection.tokenExpiresAt
+              ? formatDateTime(connection.tokenExpiresAt)
+              : '—'}
           </span>
         </div>
         <div className="flex flex-wrap gap-1">

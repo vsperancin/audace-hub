@@ -36,7 +36,7 @@ export class QuestionsEndpoint {
     filters: { status?: 'UNANSWERED' | 'ANSWERED' | 'all'; limit?: number; offset?: number } = {}
   ): Promise<MLQuestionSearchResponse> {
     return this.client.get<MLQuestionSearchResponse>(`/items/${itemId}/questions`, {
-      status: filters.status,
+      ...(filters.status !== undefined ? { status: filters.status } : {}),
       limit: filters.limit ?? 50,
       offset: filters.offset ?? 0,
     });

@@ -15,8 +15,11 @@
 /** Plataformas de marketplace suportadas. Adicione novas aqui. */
 export type Platform = 'mercadolivre' | 'shopee' | 'magalu' | 'amazon';
 
-/** Status da conexão OAuth — alinhado com o schema do DB. */
-export type ConnectionStatus = 'active' | 'expired' | 'error' | 'disconnected';
+/** Status da conexão OAuth — alinhado com o schema do DB.
+ *  `'pending'` é usado durante o fluxo OAuth (antes da primeira troca de token)
+ *  e durante refreshes — não persiste no DB final, mas o adapter `toConnectionView`
+ *  pode recebê-lo de fontes externas (webhooks, jobs). */
+export type ConnectionStatus = 'active' | 'expired' | 'error' | 'disconnected' | 'pending';
 
 // =============================================================================
 // Modelos de banco (mirror do schema)

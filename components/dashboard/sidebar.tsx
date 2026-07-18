@@ -2,15 +2,26 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import type { ComponentType } from 'react';
 import {
   LayoutDashboard,
   Package,
   ShoppingCart,
   Plug,
   Settings,
+  type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types';
+
+/**
+ * Item de navegação renderizado na sidebar.
+ *
+ * Estende `NavItem` (que define `icon` como literal de string — útil para
+ * serialização) trocando o campo `icon` por uma referência de componente
+ * real do lucide-react, que é o que precisamos para renderizar.
+ */
+type NavItemRender = Omit<NavItem, 'icon'> & { icon: LucideIcon };
 
 /**
  * Sidebar estilo Magiic — itens: Escritório / Estoque / Vendas / Conexões / Configurações.
@@ -20,7 +31,7 @@ import type { NavItem } from '@/types';
  *
  * O componente é Client porque usa `usePathname()` para highlight ativo.
  */
-const NAV_ITEMS: Array<NavItem & { icon: React.ComponentType<{ className?: string }> }> = [
+const NAV_ITEMS: NavItemRender[] = [
   { label: 'Escritório', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Estoque', href: '/dashboard/estoque', icon: Package },
   { label: 'Vendas', href: '/dashboard/vendas', icon: ShoppingCart },

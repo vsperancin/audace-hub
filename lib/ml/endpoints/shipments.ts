@@ -141,7 +141,7 @@ export class ShipmentsEndpoint {
     filters: { status?: string; offset?: number; limit?: number } = {}
   ): Promise<unknown> {
     return this.client.get(`/users/${userId}/shipping_notifications`, {
-      status: filters.status,
+      ...(filters.status !== undefined ? { status: filters.status } : {}),
       offset: filters.offset ?? 0,
       limit: filters.limit ?? 50,
     });
