@@ -17,7 +17,10 @@ RUN \
 # ---------- Stage 2: builder ----------
 FROM node:20-alpine AS builder
 WORKDIR /app
+# IMPORTANTE: NÃO setar NODE_ENV=production aqui — Coolify injeta isso automaticamente
+# e isso faz npm ci pular devDependencies. Manter development pro build stage.
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=development
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
