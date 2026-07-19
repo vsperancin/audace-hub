@@ -1,3 +1,9 @@
+// @ts-check
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /**
  * Configuração do Next.js 14 (App Router).
  *
@@ -14,6 +20,15 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   output: 'standalone',
+  // Aliases espelhados do tsconfig (Next.js precisa explicitamente em alguns
+  // cenários de build pra resolver paths durante a compilação).
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname),
+    };
+    return config;
+  },
   images: {
     remotePatterns: [
       {

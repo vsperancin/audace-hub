@@ -17,12 +17,14 @@ RUN \
 # ---------- Stage 2: builder ----------
 FROM node:20-alpine AS builder
 WORKDIR /app
-# IMPORTANTE: NÃO setar NODE_ENV=production aqui — Coolify injeta isso automaticamente
-# e isso faz npm ci pular devDependencies. Manter development pro build stage.
+# IMPORTANTE: Coolify injeta NODE_ENV=production automaticamente.
+# Isso é BOM pro build (Next.js detect production mode e otimiza).
+# Mas pode pular devDeps. Por isso forçamos install com --include=dev abaixo.
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=development
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Install com devDeps explícito (caso NODE_ENV=production tenha pulado)
+RUN npm ci --include=dev --no-audit --no-fund || npm install --include=dev --no-audit --no-fund
 RUN npm run build
 
 # ---------- Stage 3: runner (imagem final) ----------
