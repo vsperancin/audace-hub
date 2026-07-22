@@ -36,6 +36,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+# ML OAuth (Client ID é semi-public — vai no Dockerfile; SECRET vai via UI)
+ENV ML_APP_ID="7233150780441807"
+
 # Usuário não-root por segurança.
 RUN addgroup --system --gid 1001 nodejs \
  && adduser --system --uid 1001 nextjs
