@@ -56,15 +56,15 @@ export async function execute(sql: string, params: any[] = []): Promise<number> 
 
 /**
  * Hash de senha usando bcrypt (cost 10).
- * Implementação simples — usa crypto nativo (sem dependência extra).
+ * Usa bcryptjs (puro JS, sem dependência nativa).
  */
 export async function hashPassword(password: string): Promise<string> {
-  const bcrypt = await import('bcrypt');
+  const bcrypt = await import('bcryptjs');
   return bcrypt.hash(password, 10);
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const bcrypt = await import('bcrypt');
+  const bcrypt = await import('bcryptjs');
   return bcrypt.compare(password, hash);
 }
 
