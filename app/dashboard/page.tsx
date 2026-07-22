@@ -1,30 +1,47 @@
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
+import { query, getSessionUser } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlusCircle, Plug } from 'lucide-react';
+
+interface ConnectionRow {
+  id: string;
+  platform: string;
+  account_label: string | null;
+  status: string;
+  token_expires_at: Date | null;
+}
 
 /**
  * Overview do dashboard (Server Component).
  * Lista conexões + CTA principal: conectar Mercado Livre.
  */
 export default async function DashboardPage() {
-  const supabase = createClient();
+  const token = cookies().get('session_token')?.value;
+  const user = token ? await getSessionUser(token) : null;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  if (!user) {
+    return (
+      <div className="rounded-lg border border-dashed p-8 text-center">
+        <p className="text-muted-foreground">Faça login para acessar o dashboard.</p>
+        <Button asChild className="mt-4">
+          <Link href="/login">Entrar</Link>
+        </Button>
+      </div>
+    );
+  }
 
-  if (!user) return null; // layout já redireciona, mas TS precisa do guard.
+  const connections = await query<ConnectionRow>(
+    `SELECT id, platform, account_label, status, token_expires_at
+       FROM public.connections
+      WHERE user_id = $1
+      ORDER BY created_at DESC`,
+    [user.id],
+  );
 
-  const { data: connections } = await supabase
-    .from('connections')
-    .select('id, platform, account_label, status, token_expires_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
-
-  const total = connections?.length ?? 0;
-  const active = connections?.filter((c) => c.status === 'active').length ?? 0;
+  const total = connections.length;
+  const active = connections.filter((c) => c.status === 'active').length;
 
   return (
     <div className="space-y-6">
@@ -60,7 +77,7 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardDescription>Marketplaces</CardDescription>
             <CardTitle className="text-3xl">
-              {new Set(connections?.map((c) => c.platform)).size}
+              {new Set(connections.map((c) => c.platform)).size}
             </CardTitle>
           </CardHeader>
           <CardContent>

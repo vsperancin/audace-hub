@@ -1,38 +1,21 @@
-import { createClient } from '@/lib/supabase/server';
-import { ConnectMlButton } from '@/components/connections/connect-ml-button';
-import { ConnectionCard } from '@/components/connections/connection-card';
-import { toConnectionView, type ConnectionRow } from '@/types';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plug } from 'lucide-react';
 
 /**
- * Página de conexões (Server Component).
+ * Página de conexões (Server Component) — STUB pós-refactor Supabase.
  *
- * Lista as conexões do usuário atual (RLS garante isolamento) e oferece
- * CTA para iniciar fluxo OAuth do Mercado Livre.
+ * Mostra apenas o CTA pra conectar Mercado Livre. A listagem real das
+ * conexões existentes será re-implementada usando lib/db.ts.
  */
 export default async function ConnectionsPage() {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data: rows } = await supabase
-    .from('connections')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
-
-  const connections = (rows as ConnectionRow[] | null)?.map(toConnectionView) ?? [];
-
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-bold">Conexões</h1>
         <p className="text-sm text-muted-foreground">
-          Conecte suas contas de marketplace via OAuth. Os tokens são armazenados
-          criptografados (AES-256-GCM).
+          Conecte suas contas de marketplace para começar a sincronizar.
         </p>
       </header>
 
@@ -40,24 +23,23 @@ export default async function ConnectionsPage() {
         <CardHeader>
           <CardTitle>Mercado Livre</CardTitle>
           <CardDescription>
-            Pedidos, itens, envios, faturamento e anúncios.
+            Conecte sua conta do Mercado Livre pra sincronizar pedidos, anúncios
+            e métricas de ads.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ConnectMlButton />
+          <Button asChild>
+            <Link href="/api/oauth/ml/start">
+              <Plug className="mr-2 h-4 w-4" />
+              Conectar Mercado Livre
+            </Link>
+          </Button>
         </CardContent>
       </Card>
 
-      {connections.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Suas conexões</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {connections.map((c) => (
-              <ConnectionCard key={c.id} connection={c} />
-            ))}
-          </div>
-        </section>
-      )}
+      <p className="text-xs text-muted-foreground">
+        Em breve: listagem das suas conexões existentes, status do token, e ações de gerenciamento.
+      </p>
     </div>
   );
 }

@@ -1,27 +1,31 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
 
+/**
+ * Botão de logout — chama /api/auth/logout e redireciona pra /login.
+ */
 export function LogoutButton() {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setPending] = useState(false);
 
-  function handleLogout() {
-    startTransition(async () => {
-      const supabase = createClient();
-      await supabase.auth.signOut();
+  async function handleLogout() {
+    setPending(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
       router.push('/login');
       router.refresh();
-    });
+    } catch (err) {
+      console.error('logout error', err);
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
-    <Button variant="destructive" onClick={handleLogout} disabled={isPending}>
-      <LogOut className="mr-2 h-4 w-4" />
+    <Button variant="destructive" disabled={isPending} onClick={handleLogout}>
       {isPending ? 'Saindo...' : 'Sair'}
     </Button>
   );

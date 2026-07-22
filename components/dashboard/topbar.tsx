@@ -1,34 +1,32 @@
 'use client';
 
-import { LogOut, User } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
+interface TopbarProps {
+  userEmail: string;
+}
+
 /**
- * Topbar do dashboard — email do user + botão logout.
+ * Topbar do dashboard (Client Component).
+ *
+ * STUB pós-refactor Supabase: não tem menu de user real, só mostra email.
+ * O logout é feito pela página /dashboard/settings (botão dedicado).
  */
-export function Topbar({ userEmail }: { userEmail: string }) {
-  const router = useRouter();
-
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/login');
-    router.refresh();
-  }
-
+export function Topbar({ userEmail }: TopbarProps) {
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-background px-6">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <User className="h-4 w-4" />
-        <span>{userEmail}</span>
+    <header className="flex h-14 items-center justify-between border-b bg-background px-6">
+      <div className="flex items-center gap-3">
+        <Link href="/dashboard" className="font-semibold">
+          Audace Hub
+        </Link>
       </div>
-
-      <Button variant="ghost" size="sm" onClick={handleLogout}>
-        <LogOut className="mr-2 h-4 w-4" />
-        Sair
-      </Button>
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-muted-foreground">{userEmail}</span>
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/dashboard/settings">Configurações</Link>
+        </Button>
+      </div>
     </header>
   );
 }

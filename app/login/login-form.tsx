@@ -3,7 +3,6 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -35,16 +34,24 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     }
 
     startTransition(async () => {
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword(parsed.data);
+      try {
+        const r = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsed.data),
+        });
 
-      if (authError) {
-        setError('E-mail ou senha incorretos');
-        return;
+        const data = await r.json();
+        if (!data.ok) {
+          setError(data.msg || 'Erro no login');
+          return;
+        }
+
+        router.push(data.redirect || redirectTo);
+        router.refresh();
+      } catch (err) {
+        setError('Erro de conexão');
       }
-
-      router.push(redirectTo);
-      router.refresh();
     });
   }
 

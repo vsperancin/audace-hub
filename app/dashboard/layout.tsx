@@ -1,25 +1,27 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
+import { getSessionUser } from '@/lib/db';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Topbar } from '@/components/dashboard/topbar';
 
 /**
  * Layout autenticado (Server Component).
  *
- * - Server-side check de sessão: se não houver user, redireciona pra /login.
- *   (Defesa em profundidade — middleware já protege, mas server check é
- *   obrigatório pra evitar flash de UI logada.)
- * - Estrutura: Sidebar fixa à esquerda (estilo Magiic) + Topbar + main.
+ * - Lê cookie `session_token` e valida contra `public.sessions` (Postgres).
+ * - Se inválido, redireciona pra /login.
  */
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const cookieStore = cookies();
+  const token = cookieStore.get('session_token')?.value;
+
+  let user: { id: string; email: string; full_name: string | null } | null = null;
+  if (token) {
+    user = await getSessionUser(token);
+  }
 
   if (!user) {
     redirect('/login?redirect=/dashboard');
@@ -29,7 +31,7 @@ export default async function DashboardLayout({
     <div className="flex min-h-screen bg-muted/40">
       <Sidebar />
       <div className="flex flex-1 flex-col">
-        <Topbar userEmail={user.email ?? ''} />
+        <Topbar userEmail={user.email} />
         <main className="flex-1 p-6">{children}</main>
       </div>
     </div>

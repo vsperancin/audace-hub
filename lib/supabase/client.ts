@@ -1,18 +1,18 @@
 'use client';
 
-import { createBrowserClient } from '@supabase/ssr';
-
 /**
- * Cliente Supabase para uso no BROWSER (Client Components).
+ * STUB: Supabase foi removido. Audace Hub agora usa Postgres Coolify direto.
+ * Esta função retorna `null` para indicar que a integração Supabase não está
+ * mais disponível. Pages que usavam isso vão quebrar até o refactor ser
+ * completado.
  *
- * - Usa anon key (pública, RLS-enforced).
- * - Persiste sessão em cookies (não localStorage) — funciona com SSR.
- * - NUNCA use este cliente com service_role — apenas leitura/escrita do
- *   próprio usuário (respeitando RLS).
+ * Para usar o novo banco:
+ *   import { query, queryOne, execute } from '@/lib/db'
  */
-export function createClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+
+export function createClient(): null {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[lib/supabase/client] Supabase removido. Use lib/db.ts.');
+  }
+  return null;
 }

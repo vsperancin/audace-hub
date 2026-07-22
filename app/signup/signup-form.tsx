@@ -3,17 +3,20 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 const signupSchema = z.object({
-  fullName: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
   email: z.string().email('E-mail inválido'),
-  password: z.string().min(8, 'Senha deve ter no mínimo 8 caracteres'),
+  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  full_name: z.string().optional(),
 });
 
-export function SignupForm() {
+interface SignupFormProps {
+  redirectTo: string;
+}
+
+export function SignupForm({ redirectTo }: SignupFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -22,9 +25,9 @@ export function SignupForm() {
     setError(null);
 
     const parsed = signupSchema.safeParse({
-      fullName: formData.get('fullName'),
       email: formData.get('email'),
       password: formData.get('password'),
+      full_name: formData.get('full_name') || undefined,
     });
 
     if (!parsed.success) {
@@ -33,39 +36,39 @@ export function SignupForm() {
     }
 
     startTransition(async () => {
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signUp({
-        email: parsed.data.email,
-        password: parsed.data.password,
-        options: {
-          data: { full_name: parsed.data.fullName },
-        },
-      });
+      try {
+        const r = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsed.data),
+        });
 
-      if (authError) {
-        setError(authError.message);
-        return;
+        const data = await r.json();
+        if (!data.ok) {
+          setError(data.msg || 'Erro no cadastro');
+          return;
+        }
+
+        router.push(data.redirect || redirectTo);
+        router.refresh();
+      } catch (err) {
+        setError('Erro de conexão');
       }
-
-      // Supabase com confirmação de email habilitada: mostra tela de "verifique seu email".
-      // Se confirmação desabilitada: redireciona direto.
-      router.push('/dashboard');
-      router.refresh();
     });
   }
 
   return (
     <form action={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <label htmlFor="fullName" className="text-sm font-medium">
+        <label htmlFor="full_name" className="text-sm font-medium">
           Nome completo
         </label>
         <Input
-          id="fullName"
-          name="fullName"
+          id="full_name"
+          name="full_name"
           type="text"
           autoComplete="name"
-          required
+          placeholder="Seu nome"
         />
       </div>
 
@@ -79,12 +82,13 @@ export function SignupForm() {
           type="email"
           autoComplete="email"
           required
+          placeholder="seu@email.com"
         />
       </div>
 
       <div className="space-y-2">
         <label htmlFor="password" className="text-sm font-medium">
-          Senha
+          Senha (mínimo 6 caracteres)
         </label>
         <Input
           id="password"
@@ -92,7 +96,7 @@ export function SignupForm() {
           type="password"
           autoComplete="new-password"
           required
-          minLength={8}
+          minLength={6}
         />
       </div>
 
