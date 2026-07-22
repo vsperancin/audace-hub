@@ -13,7 +13,7 @@ export default function SignupPage() {
           <p className="text-sm text-muted-foreground">Crie sua conta gratuita</p>
         </header>
 
-        <SignupForm />
+        <SignupForm redirectTo="/dashboard" />
 
         <p className="text-center text-sm text-muted-foreground">
           Já tem conta?{' '}
