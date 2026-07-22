@@ -35,7 +35,9 @@ export async function POST(request: NextRequest) {
     );
 
     // 4. Build authorization URL
-    const authUrl = buildAuthorizationUrl(state, SCOPE_PRESETS.standard);
+    const clientId = process.env.ML_APP_ID || '';
+    const redirectUri = process.env.ML_REDIRECT_URI || `https://${request.headers.get('host')}/api/oauth/ml/callback`;
+    const authUrl = buildAuthorizationUrl(clientId, redirectUri, SCOPE_PRESETS.READ_WRITE, state);
 
     return NextResponse.json({ ok: true, authorization_url: authUrl });
   } catch (error) {
