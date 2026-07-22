@@ -4,23 +4,30 @@ import { getSessionUser, execute } from '@/lib/db';
 import { generateState, buildAuthorizationUrl, SCOPE_PRESETS } from '@/lib/ml/oauth';
 
 /**
- * POST /api/oauth/ml/start
+ * GET /api/oauth/ml/start
  *
- * Inicia o fluxo OAuth2 do Mercado Livre.
+ * Inicia o fluxo OAuth2 do Mercado Livre. É um GET (não POST) porque o
+ * usuário acessa via clique num link — o browser faz GET automaticamente.
  *
  * Fluxo:
  *  1. Valida auth (cookie session_token → public.sessions).
+ *     Se não autenticado, redireciona pra /login?redirect=/dashboard.
  *  2. Gera state aleatório (32 bytes base64url).
  *  3. Persiste state no DB (TTL 10 min) — vinculado ao user_id.
- *  4. Retorna `authorization_url` para o client redirecionar o browser.
+ *  4. Redireciona o browser pra authorization_url do Mercado Livre.
+ *
+ * O Mercado Livre faz OAuth2 normal: code + state → /api/oauth/ml/callback.
  */
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
+    // 1. Auth: precisa estar logado
     const token = cookies().get('session_token')?.value;
     const user = token ? await getSessionUser(token) : null;
     if (!user) {
-      return NextResponse.json({ ok: false, msg: 'Não autenticado' }, { status: 401 });
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', '/dashboard');
+      return NextResponse.redirect(loginUrl);
     }
 
     // 2. State
@@ -39,9 +46,12 @@ export async function POST(request: NextRequest) {
     const redirectUri = process.env.ML_REDIRECT_URI || `https://${request.headers.get('host')}/api/oauth/ml/callback`;
     const authUrl = buildAuthorizationUrl(clientId, redirectUri, SCOPE_PRESETS.READ_WRITE, state);
 
-    return NextResponse.json({ ok: true, authorization_url: authUrl });
+    // 5. Redirect direto pro Mercado Livre (em vez de retornar JSON)
+    return NextResponse.redirect(authUrl);
   } catch (error) {
     console.error('[api/oauth/ml/start] error:', error);
-    return NextResponse.json({ ok: false, msg: 'Erro ao iniciar OAuth' }, { status: 500 });
+    const errUrl = new URL('/dashboard/connections', request.url);
+    errUrl.searchParams.set('error', 'oauth_start_failed');
+    return NextResponse.redirect(errUrl);
   }
 }
