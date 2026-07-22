@@ -1,3 +1,6 @@
+// IMPORTS DNS-FIX PRIMEIRO
+import '@/lib/dns-fix';
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 import { getSessionUser, execute } from '@/lib/db';

@@ -7,10 +7,6 @@
 # ---------- Stage 1: deps ----------
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
-# Fix DNS: container Coolify não tem DNS configurado por padrão
-# Força Google DNS (8.8.8.8) e Cloudflare (1.1.1.1) pra resolver apis externas (ML, etc)
-RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
-    echo "nameserver 1.1.1.1" >> /etc/resolv.conf
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN \
@@ -25,9 +21,6 @@ WORKDIR /app
 # Isso é BOM pro build (Next.js detect production mode e otimiza).
 # Mas pode pular devDeps. Por isso forçamos install com --include=dev abaixo.
 ENV NEXT_TELEMETRY_DISABLED=1
-# Fix DNS também no builder (pra npm install buscar pacotes)
-RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
-    echo "nameserver 1.1.1.1" >> /etc/resolv.conf
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Install com devDeps explícito (caso NODE_ENV=production tenha pulado)
@@ -37,9 +30,6 @@ RUN npm run build
 # ---------- Stage 3: runner (imagem final) ----------
 FROM node:20-alpine AS runner
 WORKDIR /app
-# Fix DNS no runtime (essencial pra fetch do OAuth ML)
-RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
-    echo "nameserver 1.1.1.1" >> /etc/resolv.conf
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

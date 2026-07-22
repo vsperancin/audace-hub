@@ -1,3 +1,7 @@
+// IMPORTS DNS-FIX PRIMEIRO: força DNS público (8.8.8.8, 1.1.1.1)
+// porque container Coolify não tem DNS configurado
+import '@/lib/dns-fix';
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { query, queryOne, execute } from '@/lib/db';
 import { exchangeCodeForTokens, validateState } from '@/lib/ml/oauth';
