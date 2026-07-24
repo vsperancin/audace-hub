@@ -41,8 +41,9 @@ ENV ML_APP_ID="7233150780441807"
 # Redirect URI cadastrado no app ML em developers.mercadolivre.com.br
 ENV ML_REDIRECT_URI="https://hub.vs2b.com.br/api/oauth/ml/callback"
 
-# Chave AES-256-GCM pra criptografar tokens OAuth (não-secret, mas única por app)
-ENV ENCRYPTION_KEY="TcrkIBM+tg54+qv7lEhhmheuaNqe3TJYrVN/Da3L/Pc="
+# ENCRYPTION_KEY (AES-256-GCM) NÃO vai no Dockerfile — é SECRET REAL.
+# Configurar via painel Coolify como is_secret=true. Regra:
+#   "Secret real (DATABASE_KEY, ML_CLIENT_SECRET, ENCRYPTION_KEY, JWT) → painel is_secret"
 
 # Usuário não-root por segurança.
 RUN addgroup --system --gid 1001 nodejs \
