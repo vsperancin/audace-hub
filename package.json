@@ -15,23 +15,24 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json,yaml,yml}\""
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "pg": "^8.13.1",
     "@radix-ui/react-slot": "^1.1.0",
+    "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.451.0",
     "next": "14.2.13",
+    "pg": "^8.13.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
+    "undici": "^8.8.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/pg": "^8.11.10",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.16.10",
+    "@types/pg": "^8.11.10",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.20",
