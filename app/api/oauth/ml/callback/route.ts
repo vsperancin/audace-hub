@@ -32,8 +32,12 @@ export async function GET(request: NextRequest) {
   const state = url.searchParams.get('state');
   const oauthError = url.searchParams.get('error');
 
+  // IMPORTANTE: dentro do container Docker do Coolify, `url.origin` resolve
+  // pra http://0.0.0.0:3000. Usar NEXT_PUBLIC_APP_URL pra redirects.
+  const publicBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hub.vs2b.com.br';
+
   const fail = (msg: string) => {
-    const redirectUrl = new URL('/dashboard/connections', url.origin);
+    const redirectUrl = new URL('/dashboard/connections', publicBaseUrl);
     redirectUrl.searchParams.set('error', 'oauth_failed');
     redirectUrl.searchParams.set('msg', msg);
     return NextResponse.redirect(redirectUrl);
@@ -131,7 +135,7 @@ export async function GET(request: NextRequest) {
     );
 
     // 10. Sucesso — redireciona pro dashboard de conexões
-    const successUrl = new URL('/dashboard/connections', url.origin);
+    const successUrl = new URL('/dashboard/connections', publicBaseUrl);
     successUrl.searchParams.set('success', 'ml_connected');
     return NextResponse.redirect(successUrl);
   } catch (error) {
