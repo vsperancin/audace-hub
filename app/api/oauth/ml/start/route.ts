@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     // 4. Build authorization URL — ML_REDIRECT_URI já é absoluto (vem do env)
     const clientId = process.env.ML_APP_ID || '';
     const redirectUri = process.env.ML_REDIRECT_URI || `${publicBaseUrl}/api/oauth/ml/callback`;
-    const authUrl = buildAuthorizationUrl(clientId, redirectUri, SCOPE_PRESETS.READ_WRITE, state);
+    const authUrl = buildAuthorizationUrl(clientId, redirectUri, SCOPE_PRESETS.FULL, state);
 
     // 5. Redirect direto pro Mercado Livre (em vez de retornar JSON)
     return NextResponse.redirect(authUrl);
